@@ -3,7 +3,6 @@ package com.velocompra.ecommerce.service;
 import com.velocompra.ecommerce.model.Grupo;
 import com.velocompra.ecommerce.model.Usuario;
 import com.velocompra.ecommerce.repository.UsuarioRepository;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
