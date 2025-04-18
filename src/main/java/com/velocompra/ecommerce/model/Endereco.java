@@ -34,4 +34,6 @@ public class Endereco {
     @Pattern(regexp = "[A-Z]{2}", message = "UF deve conter 2 letras maiúsculas")
     private String uf;
 
+    private boolean padrao;
+
 }

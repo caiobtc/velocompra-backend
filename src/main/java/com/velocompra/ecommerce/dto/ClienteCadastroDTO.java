@@ -24,7 +24,7 @@ public class ClienteCadastroDTO {
     @NotBlank
     private String email;
 
-    @NotBlank
+    @NotNull
     private LocalDate dataNascimento;
 
     @NotBlank

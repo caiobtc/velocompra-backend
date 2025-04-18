@@ -1,5 +1,6 @@
 package com.velocompra.ecommerce.security;
 
+import com.velocompra.ecommerce.model.Cliente;
 import com.velocompra.ecommerce.model.Usuario;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -27,6 +28,16 @@ public class JWTUtil {
         return Jwts.builder()
                 .setSubject(usuario.getEmail())
                 .claim("grupo", usuario.getGrupo().name())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(SECRET_KEY, SignatureAlgorithm.HS512)
+                .compact();
+    }
+
+    public String generateTokenCliente(Cliente cliente) {
+        return Jwts.builder()
+                .setSubject(cliente.getEmail())
+                .claim("grupo", "CLIENTE")
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(SECRET_KEY, SignatureAlgorithm.HS512)

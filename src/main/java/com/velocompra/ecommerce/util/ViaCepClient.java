@@ -9,7 +9,6 @@ import org.springframework.web.client.RestTemplate;
 public class ViaCepClient {
 
 
-
     public Endereco buscarCep(String cep) {
         RestTemplate restTemplate = new RestTemplate();
         String url = "https://viacep.com.br/ws/" + cep + "/json/";
@@ -24,7 +23,7 @@ public class ViaCepClient {
 
             // ✅ Instancia e popula usando setters (construtor vazio)
             Endereco endereco = new Endereco();
-            endereco.setCep(body.getCep());
+            endereco.setCep(body.getCep().replaceAll("\\D", ""));
             endereco.setLogradouro(body.getLogradouro());
             endereco.setComplemento(body.getComplemento());
             endereco.setBairro(body.getBairro());

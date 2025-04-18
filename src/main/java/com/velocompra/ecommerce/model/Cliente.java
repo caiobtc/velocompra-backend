@@ -38,7 +38,7 @@ public class Cliente {
     @Column(unique = true)
     private String cpf;
 
-    @NotNull(message = "A data de nascimento é obrigatório")
+    @NotNull(message = "A data de nascimento é obrigatória")
     private LocalDate dataNascimento;
 
     @NotBlank(message = "O gênero é obrigatório")
@@ -47,18 +47,12 @@ public class Cliente {
     @NotBlank(message = "A senha é obrigatória")
     private String senha;
 
-    @Embedded
-    @AttributeOverrides({
-            @AttributeOverride(name = "cep", column = @Column(name = "cep_faturamento")),
-            @AttributeOverride(name = "logradouro", column = @Column(name = "logradouro_faturamento")),
-            @AttributeOverride(name = "numero", column = @Column(name = "numero_faturamento")),
-            @AttributeOverride(name = "complemento", column = @Column(name = "complemento_faturamento")),
-            @AttributeOverride(name = "bairro", column = @Column(name = "bairro_faturamento")),
-            @AttributeOverride(name = "cidade", column = @Column(name = "cidade_faturamento")),
-            @AttributeOverride(name = "uf", column = @Column(name = "uf_faturamento"))
-    })
-    private Endereco enderecoFaturamento;
+    // Endereço de Faturamento separado
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "endereco_faturamento_id")
+    private EnderecoFaturamento enderecoFaturamento;
 
+    // Endereços de entrega (mantém como lista embutida)
     @ElementCollection
     @CollectionTable(name = "enderecos_entrega", joinColumns = @JoinColumn(name = "cliente_id"))
     private List<Endereco> enderecosEntrega = new ArrayList<>();

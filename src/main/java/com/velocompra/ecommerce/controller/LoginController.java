@@ -2,6 +2,8 @@ package com.velocompra.ecommerce.controller;
 
 import com.velocompra.ecommerce.dto.LoginRequest;
 import com.velocompra.ecommerce.dto.LoginResponse;
+import com.velocompra.ecommerce.model.Cliente;
+import com.velocompra.ecommerce.model.Grupo;
 import com.velocompra.ecommerce.model.Usuario;
 import com.velocompra.ecommerce.security.JWTUtil;
 import com.velocompra.ecommerce.service.AuthService;
@@ -19,28 +21,35 @@ public class LoginController {
     private AuthService authService;
 
     @Autowired
-    private JWTUtil jwtUtil; // Injetando a instância do JWTUtil
+    private JWTUtil jwtUtil;
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest) {
-        String email = loginRequest.getEmail();
-        String senha = loginRequest.getSenha();
+        Usuario usuario = authService.validarLogin(loginRequest.getEmail(), loginRequest.getSenha());
 
-        Usuario usuario = authService.validarLogin(email, senha);
-
-        if (usuario != null && usuario.isAtivo()) {
-            String token = jwtUtil.generateToken(usuario);
-
-            LoginResponse response = new LoginResponse(
-                    token,
-                    usuario.getNome(),
-                    usuario.getGrupo().name()
-            );
-
-            return ResponseEntity.ok(response);
-
-        } else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Login falhou. Verifique suas credenciais.");
+        if (usuario == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email ou senha inválidos.");
         }
+
+        if (usuario.getGrupo() == Grupo.CLIENTE) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Acesso não permitido para clientes.");
+        }
+
+        String token = jwtUtil.generateToken(usuario);
+        LoginResponse response = new LoginResponse(token, usuario.getNome(), usuario.getGrupo().name());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/login-cliente")
+    public ResponseEntity<?> loginCliente(@RequestBody LoginRequest loginRequest) {
+        Cliente cliente = authService.validarLoginCliente(loginRequest.getEmail(), loginRequest.getSenha());
+
+        if (cliente == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Email ou senha inválidos.");
+        }
+
+        String token = jwtUtil.generateTokenCliente(cliente);
+        LoginResponse response = new LoginResponse(token, cliente.getNomeCompleto(), "CLIENTE");
+        return ResponseEntity.ok(response);
     }
 }

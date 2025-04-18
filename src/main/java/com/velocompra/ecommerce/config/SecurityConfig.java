@@ -44,6 +44,16 @@ public class SecurityConfig {
                         // Públicos
                         .requestMatchers("/api/auth/**", "/uploads/**").permitAll()
                         .requestMatchers("/api/produtos", "/api/produtos/", "/api/produtos/{id}").permitAll()
+                        .requestMatchers("/api/clientes/cadastrar").permitAll()
+                        .requestMatchers("/api/viacep/**").permitAll()
+
+
+
+                        // Exclusivos do CLIENTE
+                        .requestMatchers("/api/pedidos/**").hasAuthority("CLIENTE")
+                        .requestMatchers("/api/clientes/meus-dados").hasAuthority("CLIENTE")
+                        .requestMatchers("/api/carrinho/**").hasAuthority("CLIENTE")
+
 
                         // Privados (Admin / Estoquista)
                         .requestMatchers("/api/produtos/admin/**").hasAnyAuthority("ADMINISTRADOR", "ESTOQUISTA")
