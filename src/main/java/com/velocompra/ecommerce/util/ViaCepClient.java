@@ -1,5 +1,5 @@
 package com.velocompra.ecommerce.util;
-import com.velocompra.ecommerce.model.Endereco;
+import com.velocompra.ecommerce.model.EnderecoEntrega;
 import com.velocompra.ecommerce.model.ViaCepResponse;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -9,7 +9,7 @@ import org.springframework.web.client.RestTemplate;
 public class ViaCepClient {
 
 
-    public Endereco buscarCep(String cep) {
+    public EnderecoEntrega buscarCep(String cep) {
         RestTemplate restTemplate = new RestTemplate();
         String url = "https://viacep.com.br/ws/" + cep + "/json/";
 
@@ -22,15 +22,15 @@ public class ViaCepClient {
             }
 
             // ✅ Instancia e popula usando setters (construtor vazio)
-            Endereco endereco = new Endereco();
-            endereco.setCep(body.getCep().replaceAll("\\D", ""));
-            endereco.setLogradouro(body.getLogradouro());
-            endereco.setComplemento(body.getComplemento());
-            endereco.setBairro(body.getBairro());
-            endereco.setCidade(body.getLocalidade());
-            endereco.setUf(body.getUf());
+            EnderecoEntrega enderecoEntrega = new EnderecoEntrega();
+            enderecoEntrega.setCep(body.getCep().replaceAll("\\D", ""));
+            enderecoEntrega.setLogradouro(body.getLogradouro());
+            enderecoEntrega.setComplemento(body.getComplemento());
+            enderecoEntrega.setBairro(body.getBairro());
+            enderecoEntrega.setCidade(body.getLocalidade());
+            enderecoEntrega.setUf(body.getUf());
 
-            return endereco;        } catch (Exception e) {
+            return enderecoEntrega;        } catch (Exception e) {
             throw new RuntimeException("Erro ao buscar CEP: " + e.getMessage());
         }
     }

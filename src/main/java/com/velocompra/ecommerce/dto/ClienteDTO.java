@@ -1,7 +1,6 @@
 package com.velocompra.ecommerce.dto;
 
 import com.velocompra.ecommerce.model.Cliente;
-import com.velocompra.ecommerce.model.Endereco;
 import com.velocompra.ecommerce.model.EnderecoFaturamento;
 import lombok.Data;
 

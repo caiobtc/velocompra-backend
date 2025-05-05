@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,7 +51,7 @@ public class ClienteService {
 
         // Endereço de Faturamento
         EnderecoDTO endDTO = dto.getEnderecoFaturamento();
-        Endereco viaCep = viaCepUtil.buscarCep(endDTO.getCep());
+        EnderecoEntrega viaCep = viaCepUtil.buscarCep(endDTO.getCep());
 
         EnderecoFaturamento faturamento = new EnderecoFaturamento();
         faturamento.setCep(viaCep.getCep());
@@ -67,11 +66,11 @@ public class ClienteService {
         cliente.setEnderecoFaturamento(faturamento);
 
         // Endereços de Entrega
-        List<Endereco> enderecosEntrega = dto.getEnderecosEntrega().stream().map(endDTOEntrega -> {
-            Endereco endereco = viaCepUtil.buscarCep(endDTOEntrega.getCep());
-            endereco.setNumero(endDTOEntrega.getNumero());
-            endereco.setComplemento(endDTOEntrega.getComplemento());
-            return endereco;
+        List<EnderecoEntrega> enderecosEntrega = dto.getEnderecosEntrega().stream().map(endDTOEntrega -> {
+            EnderecoEntrega enderecoEntrega = viaCepUtil.buscarCep(endDTOEntrega.getCep());
+            enderecoEntrega.setNumero(endDTOEntrega.getNumero());
+            enderecoEntrega.setComplemento(endDTOEntrega.getComplemento());
+            return enderecoEntrega;
         }).collect(Collectors.toList());
 
         cliente.setEnderecosEntrega(enderecosEntrega);
@@ -90,7 +89,7 @@ public class ClienteService {
 
         EnderecoDTO endDTO = dto.getEnderecoFaturamento();
         if (endDTO != null) {
-            Endereco viaCep = viaCepUtil.buscarCep(endDTO.getCep());
+            EnderecoEntrega viaCep = viaCepUtil.buscarCep(endDTO.getCep());
 
             EnderecoFaturamento faturamento = new EnderecoFaturamento();
             faturamento.setCep(viaCep.getCep());
@@ -120,20 +119,38 @@ public class ClienteService {
 
     @Transactional
     public void adicionarEnderecoEntrega(String email, EnderecoDTO dto) {
+        // Busca o cliente pelo email
         Cliente cliente = clienteRepository.findByEmail(email)
-                .orElseThrow(()->new RuntimeException("Cliente não encontrado"));
+                .orElseThrow(() -> new RuntimeException("Cliente não encontrado"));
 
-        // se for for marcado como padrão, remover o "padrão" dos anteriores
+        // Se o novo endereço for marcado como "padrão", marca os endereços antigos como não padrão
         if (dto.isPadrao()) {
             cliente.getEnderecosEntrega().forEach(e -> e.setPadrao(false));
         }
 
-        Endereco novo = viaCepUtil.buscarCep(dto.getCep());
-        novo.setNumero(dto.getNumero());
-        novo.setComplemento(dto.getComplemento());
-        novo.setPadrao(dto.isPadrao());
+        // Cria um novo endereço de entrega
+        EnderecoEntrega novoEndereco = new EnderecoEntrega();
+        novoEndereco.setCep(dto.getCep());
+        novoEndereco.setLogradouro(dto.getLogradouro());
+        novoEndereco.setNumero(dto.getNumero());
+        novoEndereco.setComplemento(dto.getComplemento());
+        novoEndereco.setBairro(dto.getBairro());
+        novoEndereco.setCidade(dto.getCidade());
+        novoEndereco.setUf(dto.getUf());
+        novoEndereco.setPadrao(dto.isPadrao());
 
-        cliente.getEnderecosEntrega().add(novo);
+        // Associa o cliente ao novo endereço
+        novoEndereco.setCliente(cliente);
+
+        // Adiciona o novo endereço à lista de endereços de entrega do cliente
+        cliente.getEnderecosEntrega().add(novoEndereco);
+
+        // Salva o cliente (isso salvará automaticamente o novo endereço, devido ao relacionamento)
         clienteRepository.save(cliente);
+    }
+
+
+    public Cliente getClienteByEmail(String email) {
+        return clienteRepository.findByEmail(email).orElse(null);
     }
 }

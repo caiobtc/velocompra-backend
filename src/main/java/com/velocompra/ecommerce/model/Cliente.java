@@ -1,5 +1,6 @@
 package com.velocompra.ecommerce.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -48,15 +49,14 @@ public class Cliente {
     private String senha;
 
     // Endereço de Faturamento separado
-    @OneToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "endereco_faturamento_id")
+    @OneToOne()
+    @JoinColumn(name = "cliente_id")
     private EnderecoFaturamento enderecoFaturamento;
 
     // Endereços de entrega (mantém como lista embutida)
-    @ElementCollection
-    @CollectionTable(name = "enderecos_entrega", joinColumns = @JoinColumn(name = "cliente_id"))
-    private List<Endereco> enderecosEntrega = new ArrayList<>();
 
-
+    @JsonManagedReference
+    @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<EnderecoEntrega> enderecosEntrega = new ArrayList<>();
 
 }

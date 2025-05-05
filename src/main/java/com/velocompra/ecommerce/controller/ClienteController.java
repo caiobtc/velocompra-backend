@@ -5,17 +5,18 @@ import com.velocompra.ecommerce.dto.ClienteDTO;
 import com.velocompra.ecommerce.dto.ClienteEditarDTO;
 import com.velocompra.ecommerce.dto.EnderecoDTO;
 import com.velocompra.ecommerce.model.Cliente;
-import com.velocompra.ecommerce.model.Endereco;
+import com.velocompra.ecommerce.model.EnderecoEntrega;
 import com.velocompra.ecommerce.repository.ClienteRepository;
 import com.velocompra.ecommerce.service.ClienteService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/clientes")
@@ -87,8 +88,21 @@ public class ClienteController {
     }
 
     @PostMapping("/enderecos-entrega")
-    public ResponseEntity<?> adicionarEnderecoEntrega(@RequestBody EnderecoDTO novoEndereco, Principal principal) {
+    @PreAuthorize("hasAuthority('CLIENTE')")
+    public ResponseEntity<?> adicionarEnderecoEntrega(@RequestBody @Valid EnderecoDTO novoEndereco, Principal principal) {
+        // Log para debug, imprimindo o novo endereço recebido
+        System.out.println("Novo endereço recebido: " + novoEndereco);
+
+        // Verificação para garantir que o CEP seja válido
+        if (novoEndereco.getCep() == null || novoEndereco.getCep().length() != 8) {
+            return ResponseEntity.badRequest().body("CEP inválido.");
+        }
+
+        // Chama o serviço para adicionar o novo endereço
         clienteService.adicionarEnderecoEntrega(principal.getName(), novoEndereco);
+
+        // Retorna uma resposta de sucesso
         return ResponseEntity.ok().build();
     }
+
 }

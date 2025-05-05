@@ -53,6 +53,8 @@ public class SecurityConfig {
                         .requestMatchers("/api/pedidos/**").hasAuthority("CLIENTE")
                         .requestMatchers("/api/clientes/meus-dados").hasAuthority("CLIENTE")
                         .requestMatchers("/api/carrinho/**").hasAuthority("CLIENTE")
+                        .requestMatchers("/api/checkout/**").hasAuthority("CLIENTE")
+
 
 
                         // Privados (Admin / Estoquista)

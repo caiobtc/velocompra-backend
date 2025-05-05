@@ -48,7 +48,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         .getBody();
 
                 String email = claims.getSubject(); // Subject = e-mail do usuário
-                String grupo = claims.get("grupo", String.class); // Perfil de acesso (ADMINISTRADOR/ESTOQUISTA)
+                String grupo = claims.get("grupo", String.class); // Perfil de acesso (ADMINISTRADOR/ESTOQUISTA/CLIENTE)
+                logger.info("Grupo Extraido do token: " + grupo);
+                logger.info("Email Extraido do token: " + claims.getSubject());
 
                 if (email != null && grupo != null) {
                     SimpleGrantedAuthority authority = new SimpleGrantedAuthority(grupo);
@@ -57,6 +59,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             new UsernamePasswordAuthenticationToken(email, null, Collections.singletonList(authority));
 
                     SecurityContextHolder.getContext().setAuthentication(authentication);
+                    logger.info("Authentication set in SecurityContext: " + SecurityContextHolder.getContext().getAuthentication());
                 }
 
             } catch (ExpiredJwtException e) {

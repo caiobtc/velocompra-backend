@@ -1,5 +1,6 @@
 package com.velocompra.ecommerce.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.velocompra.ecommerce.model.Cliente;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -36,6 +37,8 @@ public class EnderecoFaturamento {
     @Pattern(regexp = "[A-Z]{2}", message = "UF deve conter 2 letras maiúsculas")
     private String uf;
 
-    @OneToOne(mappedBy = "enderecoFaturamento")
+
+    @ManyToOne
+    @JoinColumn(name = "cliente_id")
     private Cliente cliente;
 }

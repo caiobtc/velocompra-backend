@@ -1,6 +1,6 @@
 package com.velocompra.ecommerce.dto;
 
-import com.velocompra.ecommerce.model.Endereco;
+import com.velocompra.ecommerce.model.EnderecoEntrega;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import lombok.Data;
@@ -34,13 +34,13 @@ public class EnderecoDTO {
 
     public EnderecoDTO() {}
 
-    public EnderecoDTO(Endereco endereco) {
-        this.cep = endereco.getCep();
-        this.logradouro = endereco.getLogradouro();
-        this.numero = endereco.getNumero();
-        this.complemento = endereco.getComplemento();
-        this.bairro = endereco.getBairro();
-        this.cidade = endereco.getCidade();
-        this.uf = endereco.getUf();
+    public EnderecoDTO(EnderecoEntrega enderecoEntrega) {
+        this.cep = enderecoEntrega.getCep();
+        this.logradouro = enderecoEntrega.getLogradouro();
+        this.numero = enderecoEntrega.getNumero();
+        this.complemento = enderecoEntrega.getComplemento();
+        this.bairro = enderecoEntrega.getBairro();
+        this.cidade = enderecoEntrega.getCidade();
+        this.uf = enderecoEntrega.getUf();
     }
 }

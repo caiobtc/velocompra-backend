@@ -1,6 +1,6 @@
 package com.velocompra.ecommerce.controller;
 
-import com.velocompra.ecommerce.model.Endereco;
+import com.velocompra.ecommerce.model.EnderecoEntrega;
 import com.velocompra.ecommerce.util.ViaCepClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +17,8 @@ public class ViaCepController {
     @GetMapping("/{cep}")
     public ResponseEntity<?> buscar(@PathVariable String cep) {
         try {
-            Endereco endereco = viaCepClient.buscarCep(cep);
-            return ResponseEntity.ok(endereco);
+            EnderecoEntrega enderecoEntrega = viaCepClient.buscarCep(cep);
+            return ResponseEntity.ok(enderecoEntrega);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
