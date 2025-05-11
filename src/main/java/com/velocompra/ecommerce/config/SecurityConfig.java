@@ -48,13 +48,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/viacep/**").permitAll()
 
 
-
                         // Exclusivos do CLIENTE
                         .requestMatchers("/api/pedidos/**").hasAuthority("CLIENTE")
                         .requestMatchers("/api/clientes/meus-dados").hasAuthority("CLIENTE")
                         .requestMatchers("/api/carrinho/**").hasAuthority("CLIENTE")
                         .requestMatchers("/api/checkout/**").hasAuthority("CLIENTE")
-
+                        .requestMatchers("/api/pedidos/meus-pedidos").hasAuthority("CLIENTE")
 
 
                         // Privados (Admin / Estoquista)
@@ -62,8 +61,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/produtos/{id}/status").hasAuthority("ADMINISTRADOR")
                         .requestMatchers("/api/produtos/{id}/estoque").hasAuthority("ESTOQUISTA")
                         .requestMatchers("/api/usuarios/**").hasAuthority("ADMINISTRADOR")
-
-                        // Qualquer outra rota exige autenticação
+                        .requestMatchers("/api/admin/pedidos").hasAuthority("ESTOQUISTA")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

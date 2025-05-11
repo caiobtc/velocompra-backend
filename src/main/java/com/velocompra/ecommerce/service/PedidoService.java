@@ -1,8 +1,6 @@
 package com.velocompra.ecommerce.service;
 
-import com.velocompra.ecommerce.dto.ItemPedidoDTO;
-import com.velocompra.ecommerce.dto.PedidoDTO;
-import com.velocompra.ecommerce.dto.PedidoResumoDTO;
+import com.velocompra.ecommerce.dto.*;
 import com.velocompra.ecommerce.model.*;
 import com.velocompra.ecommerce.repository.EnderecoEntregaRepository;
 import com.velocompra.ecommerce.repository.PedidoRepository;
@@ -85,5 +83,45 @@ public class PedidoService {
             dto.setStatus(pedido.getStatus().name());
             return dto;
         }).collect(Collectors.toList());
+    }
+
+    public PedidoDetalhadoDTO buscarDetalhesPedido(String numeroPedido, String emailCliente) {
+        Pedido pedido = pedidoRepository.findByNumeroPedido(numeroPedido)
+                .orElseThrow(()-> new RuntimeException("Pedido nao encontrado"));
+        if (!pedido.getCliente().getEmail().equals(emailCliente)) {
+            throw new RuntimeException("Acesso negado ao pedido");
+        }
+
+        PedidoDetalhadoDTO pedidoDetalhadoDTO = new PedidoDetalhadoDTO();
+        pedidoDetalhadoDTO.setNumeroPedido(pedido.getNumeroPedido());
+        pedidoDetalhadoDTO.setDataCriacao(pedido.getDataCriacao());
+        pedidoDetalhadoDTO.setValorFrete(pedido.getFrete());
+        pedidoDetalhadoDTO.setValorTotal(pedido.getValorTotal());
+        pedidoDetalhadoDTO.setFormaPagamento(pedido.getFormaPagamento());
+        pedidoDetalhadoDTO.setStatus(pedido.getStatus());
+
+        EnderecoEntrega enderecoEntrega = pedido.getEnderecoEntrega();
+        EnderecoDTO enderecoDTO = new EnderecoDTO();
+        enderecoDTO.setCep(enderecoEntrega.getCep());
+        enderecoDTO.setLogradouro(enderecoEntrega.getLogradouro());
+        enderecoDTO.setNumero(enderecoEntrega.getNumero());
+        enderecoDTO.setComplemento(enderecoEntrega.getComplemento());
+        enderecoDTO.setBairro(enderecoEntrega.getBairro());
+        enderecoDTO.setCidade(enderecoEntrega.getCidade());
+        enderecoDTO.setUf(enderecoEntrega.getUf());
+        pedidoDetalhadoDTO.setEnderecoEntrega(enderecoDTO);
+
+        List<PedidoDetalhadoDTO.ItemPedidoDTO> itens = pedido.getItens().stream().map(item -> {
+            PedidoDetalhadoDTO.ItemPedidoDTO itemDTO = new PedidoDetalhadoDTO.ItemPedidoDTO();
+            itemDTO.setNomeProduto(item.getProduto().getNome());
+            itemDTO.setQuantidade(item.getQuantidade());
+            itemDTO.setPrecoUnitario(item.getPrecoUnitario());
+            itemDTO.setPrecoTotal(item.getPrecoUnitario().multiply(BigDecimal.valueOf(item.getQuantidade())));
+            itemDTO.setImagemProduto(item.getProduto().getImagemPadrao());
+            return itemDTO;
+        }).toList();
+
+        pedidoDetalhadoDTO.setItens(itens);
+        return pedidoDetalhadoDTO;
     }
 }

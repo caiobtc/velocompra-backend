@@ -1,6 +1,7 @@
 package com.velocompra.ecommerce.controller;
 
 import com.velocompra.ecommerce.dto.PedidoDTO;
+import com.velocompra.ecommerce.dto.PedidoDetalhadoDTO;
 import com.velocompra.ecommerce.dto.PedidoResumoDTO;
 import com.velocompra.ecommerce.model.Cliente;
 import com.velocompra.ecommerce.model.Pedido;
@@ -9,6 +10,7 @@ import com.velocompra.ecommerce.service.PedidoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -49,6 +51,14 @@ public class PedidoController {
         List<PedidoResumoDTO> pedidos = pedidoService.listarPedidosDoCliente(cliente.getId());
         return ResponseEntity.ok(pedidos);
     }
+
+    @GetMapping("/{numeroPedido}")
+    public ResponseEntity<?> getDetalhesPedido(@PathVariable String numeroPedido) {
+        String email = getAuthenticatedUserEmail();
+        PedidoDetalhadoDTO pedidoDetalhadoDTO = pedidoService.buscarDetalhesPedido(numeroPedido, email);
+        return ResponseEntity.ok(pedidoDetalhadoDTO);
+    }
+
 
     private String getAuthenticatedUserEmail() {
         var authentication = SecurityContextHolder.getContext().getAuthentication();

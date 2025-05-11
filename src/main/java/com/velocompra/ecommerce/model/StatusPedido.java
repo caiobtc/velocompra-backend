@@ -3,8 +3,10 @@ package com.velocompra.ecommerce.model;
 public enum StatusPedido {
 
     AGUARDANDO_PAGAMENTO,
-    PAGO,
-    ENVIADO,
+    PAGAMENTO_REJEITADO,
+    PAGAMENTO_COM_SUCESSO,
+    AGUARDANDO_RETIRADA,
+    EM_TRANSITO,
     ENTREGUE,
-    CANCELADO
+
 }
