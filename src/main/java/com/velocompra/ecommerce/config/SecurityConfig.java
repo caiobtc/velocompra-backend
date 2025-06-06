@@ -4,6 +4,7 @@ import com.velocompra.ecommerce.security.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -24,7 +25,7 @@ import java.util.Arrays;
  */
 @Configuration
 @EnableWebSecurity
-@EnableMethodSecurity
+@EnableMethodSecurity(prePostEnabled = true) // Habilita a segurança baseada em anotações (@PreAuthorize)
 public class SecurityConfig {
 
     /**
@@ -70,6 +71,7 @@ public class SecurityConfig {
                         // Públicos
                         .requestMatchers("/api/auth/**", "/uploads/**").permitAll()
                         .requestMatchers("/api/produtos", "/api/produtos/", "/api/produtos/{id}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .requestMatchers("/api/clientes/cadastrar").permitAll()
                         .requestMatchers("/api/viacep/**").permitAll()
 
