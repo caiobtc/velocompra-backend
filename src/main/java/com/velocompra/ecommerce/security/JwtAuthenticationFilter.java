@@ -23,14 +23,32 @@ import java.security.Key;
 import java.util.Base64;
 import java.util.Collections;
 
+/**
+ * Filtro para autenticação JWT.
+ * Este filtro verifica a presença e validade do token JWT no cabeçalho Authorization.
+ * Se o token for válido, configura a autenticação do Spring Security para o usuário.
+ */
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final Key SECRET_KEY;
 
+    /**
+     * Construtor que inicializa a chave secreta com base no segredo fornecido.
+     * @param secret O segredo utilizado para assinar e validar o token JWT.
+     */
     public JwtAuthenticationFilter(@Value("${jwt.secret}") String secret) {
         this.SECRET_KEY = new SecretKeySpec(Base64.getDecoder().decode(secret), SignatureAlgorithm.HS512.getJcaName());
     }
 
+    /**
+     * Método principal que realiza a filtragem da requisição.
+     * Verifica o token JWT no cabeçalho Authorization, valida-o e configura a autenticação se válido.
+     * @param request A requisição HTTP recebida.
+     * @param response A resposta HTTP a ser retornada.
+     * @param filterChain O encadeamento do filtro para continuar o processamento da requisição.
+     * @throws ServletException Se ocorrer um erro durante o processamento da requisição.
+     * @throws IOException Se ocorrer um erro de E/S ao lidar com a requisição ou resposta.
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
@@ -105,7 +123,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     }
 
     /**
-     * Extrai o token JWT do cabeçalho Authorization (formato Bearer {token})
+     * Extrai o token JWT do cabeçalho Authorization (formato Bearer {token}).
+     * @param request A requisição HTTP recebida.
+     * @return O token JWT extraído, ou null se não estiver presente no cabeçalho.
      */
     private String recuperarToken(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");

@@ -18,6 +18,10 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.util.List;
 
+/**
+ * Controlador responsável pelas operações relacionadas ao cliente.
+ * Este controlador oferece endpoints para cadastro, edição de dados, consulta e atualização de endereços de entrega.
+ */
 @RestController
 @RequestMapping("/api/clientes")
 @CrossOrigin(origins = "http://localhost:3000")
@@ -29,12 +33,26 @@ public class ClienteController {
     @Autowired
     private ClienteRepository clienteRepository;
 
+    /**
+     * Realiza o cadastro de um novo cliente no sistema.
+     *
+     * @param dto O DTO contendo os dados do cliente a ser cadastrado.
+     * @return Uma resposta indicando o sucesso do cadastro.
+     */
     @PostMapping("/cadastrar")
     public ResponseEntity<?> cadastrarCliente(@RequestBody @Valid ClienteCadastroDTO dto) {
         clienteService.cadastrar(dto);
         return ResponseEntity.ok("Cliente cadastrado com sucesso!");
     }
 
+    /**
+     * Recupera os dados do cliente autenticado.
+     * Este endpoint retorna as informações do cliente, incluindo nome, e-mail, CPF, dados pessoais,
+     * endereço de faturamento e endereços de entrega.
+     *
+     * @param principal O principal do usuário autenticado, utilizado para recuperar o e-mail.
+     * @return Uma resposta com os dados do cliente.
+     */
     @GetMapping("/meus-dados")
     public ResponseEntity<?> getMeusDados(Principal principal) {
         String email = principal.getName();
@@ -80,6 +98,15 @@ public class ClienteController {
         return ResponseEntity.ok(dto);
     }
 
+    /**
+     * Atualiza os dados do cliente autenticado.
+     * Permite a alteração de informações pessoais, como nome, data de nascimento, gênero,
+     * e também a atualização de endereço de faturamento e senha.
+     *
+     * @param dto O DTO contendo os dados a serem atualizados.
+     * @param principal O principal do usuário autenticado, utilizado para recuperar o e-mail.
+     * @return Uma resposta indicando o sucesso da atualização dos dados.
+     */
     @PutMapping("/meus-dados")
     public ResponseEntity<?> atualizarMeusDados(@RequestBody @Valid ClienteEditarDTO dto, Principal principal) {
         String email = principal.getName();
@@ -87,6 +114,14 @@ public class ClienteController {
         return ResponseEntity.ok("Dados atualizados com sucesso!");
     }
 
+    /**
+     * Adiciona um novo endereço de entrega para o cliente autenticado.
+     * Verifica a validade do CEP e chama o serviço para persistir o novo endereço de entrega.
+     *
+     * @param novoEndereco O DTO contendo os dados do novo endereço de entrega.
+     * @param principal O principal do usuário autenticado, utilizado para recuperar o e-mail.
+     * @return Uma resposta de sucesso ou erro, caso o CEP seja inválido ou algum outro erro ocorra.
+     */
     @PostMapping("/enderecos-entrega")
     @PreAuthorize("hasAuthority('CLIENTE')")
     public ResponseEntity<?> adicionarEnderecoEntrega(@RequestBody @Valid EnderecoDTO novoEndereco, Principal principal) {

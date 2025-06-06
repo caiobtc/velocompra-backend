@@ -2,9 +2,23 @@ package com.velocompra.ecommerce.validacao;
 
 import org.springframework.stereotype.Component;
 
+/**
+ * Componente responsável pela validação de CPF.
+ * Este componente verifica se um CPF fornecido é válido, aplicando as regras de validação padrão.
+ */
 @Component
 public class CpfValidador {
 
+    /**
+     * Valida um CPF com base em sua estrutura e nos cálculos dos dígitos verificadores.
+     *
+     * <p>O CPF é validado removendo caracteres não numéricos, verificando se possui 11 dígitos,
+     * e se todos os dígitos não são iguais. Depois, o primeiro e o segundo dígitos verificadores são
+     * calculados e comparados com os valores presentes no CPF.</p>
+     *
+     * @param cpf O CPF a ser validado, que pode conter caracteres não numéricos (será filtrado).
+     * @return {@code true} se o CPF for válido, {@code false} caso contrário.
+     */
     public boolean isValid(String cpf) {
         // Remover caracteres não numéricos
         cpf = cpf.replaceAll("[^\\d]", "");

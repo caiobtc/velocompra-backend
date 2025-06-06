@@ -1,6 +1,7 @@
 package com.velocompra.ecommerce.dto;
 
 import com.velocompra.ecommerce.model.Grupo;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data

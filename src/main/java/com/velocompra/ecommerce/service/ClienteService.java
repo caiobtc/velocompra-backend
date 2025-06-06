@@ -16,6 +16,10 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * Serviço responsável pela gestão de clientes.
+ * Contém métodos para cadastro, atualização de dados, adição de endereços e recuperação de clientes.
+ */
 @Service
 public class ClienteService {
 
@@ -31,6 +35,14 @@ public class ClienteService {
     @Autowired
     private ViaCepClient viaCepUtil;
 
+    /**
+     * Realiza o cadastro de um novo cliente.
+     * Verifica se o CPF e o e-mail já estão cadastrados e realiza a validação de dados.
+     * Cria o cliente e associa os endereços de faturamento e entrega.
+     *
+     * @param dto O DTO contendo os dados do cliente a ser cadastrado.
+     * @throws ConflictException Se o CPF ou e-mail já estiverem cadastrados no sistema.
+     */
     @Transactional
     public void cadastrar(ClienteCadastroDTO dto) {
         if (clienteRepository.existsByCpf(dto.getCpf())) {
@@ -78,6 +90,14 @@ public class ClienteService {
         clienteRepository.save(cliente);
     }
 
+    /**
+     * Atualiza os dados de um cliente existente.
+     * Atualiza nome, data de nascimento, gênero, e senha (se fornecida).
+     *
+     * @param email O e-mail do cliente a ser atualizado.
+     * @param dto O DTO contendo os dados a serem atualizados.
+     * @throws RuntimeException Se o cliente não for encontrado ou a senha atual estiver incorreta.
+     */
     @Transactional
     public void atualizarDados(String email, ClienteEditarDTO dto) {
         Cliente cliente = clienteRepository.findByEmail(email)
@@ -117,6 +137,14 @@ public class ClienteService {
         clienteRepository.save(cliente);
     }
 
+    /**
+     * Adiciona um novo endereço de entrega ao cliente.
+     * Caso o endereço seja marcado como "padrão", todos os outros endereços de entrega serão atualizados para não padrão.
+     *
+     * @param email O e-mail do cliente ao qual o novo endereço será adicionado.
+     * @param dto O DTO contendo os dados do novo endereço de entrega.
+     * @throws RuntimeException Se o cliente não for encontrado.
+     */
     @Transactional
     public void adicionarEnderecoEntrega(String email, EnderecoDTO dto) {
         // Busca o cliente pelo email
@@ -149,7 +177,12 @@ public class ClienteService {
         clienteRepository.save(cliente);
     }
 
-
+    /**
+     * Recupera um cliente pelo seu e-mail.
+     *
+     * @param email O e-mail do cliente a ser recuperado.
+     * @return O cliente encontrado ou null se não encontrado.
+     */
     public Cliente getClienteByEmail(String email) {
         return clienteRepository.findByEmail(email).orElse(null);
     }

@@ -9,8 +9,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.File;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,35 +16,89 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Serviço responsável pela gestão dos produtos.
+ * Contém métodos para cadastro, edição, listagem, habilitação/desabilitação e atualização de estoque de produtos.
+ */
 @Service
 public class ProdutoService {
 
     @Autowired
-    private ProdutoRepository produtoRepository;
+    private final ProdutoRepository produtoRepository;
 
     @Value("${produto.upload-dir:uploads/}")
-    private String uploadDir;
+    private final String uploadDir;
 
+    public ProdutoService(ProdutoRepository produtoRepository, String uploadDir) {
+        this.produtoRepository = produtoRepository;
+        this.uploadDir = uploadDir;
+    }
+
+    /**
+     * Lista todos os produtos ativos, paginados.
+     *
+     * @param pageable O parâmetro de paginação.
+     * @return Uma página contendo produtos ativos.
+     */
     public Page<Produto> listarTodosProdutosAtivos(Pageable pageable) {
         return produtoRepository.findByAtivoTrue(pageable);
     }
 
+    /**
+     * Busca produtos pelo nome, de forma insensível a maiúsculas e minúsculas, com paginação.
+     *
+     * @param nome O nome do produto a ser buscado.
+     * @param pageable O parâmetro de paginação.
+     * @return Uma página de produtos encontrados.
+     */
     public Page<Produto> buscarPorNomeTodos(String nome, Pageable pageable) {
         return produtoRepository.findByNomeContainingIgnoreCase(nome, pageable);
     }
 
+    /**
+     * Lista todos os produtos, incluindo os inativos, paginados.
+     *
+     * @param pageable O parâmetro de paginação.
+     * @return Uma página de todos os produtos.
+     */
     public Page<Produto> listarTodosComInativos(Pageable pageable) {
         return produtoRepository.findAll(pageable); // sem filtro de ativos!
     }
 
+    /**
+     * Busca produtos pelo nome, de forma insensível a maiúsculas e minúsculas, com paginação.
+     *
+     * @param nome O nome do produto a ser buscado.
+     * @param pageable O parâmetro de paginação.
+     * @return Uma página de produtos encontrados.
+     */
     public Page<Produto> buscarPorNome(String nome, Pageable pageable) {
         return produtoRepository.findByNomeContainingIgnoreCase(nome, pageable);
     }
 
+    /**
+     * Busca um produto pelo ID.
+     *
+     * @param id O ID do produto a ser buscado.
+     * @return O produto encontrado, ou null se não encontrado.
+     */
     public Produto buscarPorId(Long id) {
         return produtoRepository.findById(id).orElse(null);
     }
 
+    /**
+     * Cadastra um novo produto.
+     * Valida os dados obrigatórios, cria diretórios para upload de imagens e salva as imagens do produto.
+     *
+     * @param nome O nome do produto.
+     * @param descricaoDetalhada A descrição detalhada do produto.
+     * @param preco O preço do produto.
+     * @param quantidadeEstoque A quantidade de estoque do produto.
+     * @param imagemPadrao O índice da imagem padrão.
+     * @param imagens As imagens do produto.
+     * @return O produto recém-criado.
+     * @throws Exception Se os dados forem inválidos ou houver um erro ao salvar as imagens.
+     */
     public Produto cadastrarProduto(String nome, String descricaoDetalhada, BigDecimal preco, int quantidadeEstoque,
                                     int imagemPadrao, MultipartFile[] imagens) throws Exception {
 
@@ -86,6 +138,13 @@ public class ProdutoService {
 
     /**
      * Valida os campos obrigatórios antes de criar um produto.
+     *
+     * @param nome O nome do produto.
+     * @param descricaoDetalhada A descrição detalhada do produto.
+     * @param preco O preço do produto.
+     * @param quantidadeEstoque A quantidade de estoque do produto.
+     * @param imagens As imagens do produto.
+     * @throws Exception Se algum campo obrigatório estiver inválido.
      */
     private void validarCamposObrigatorios(String nome, String descricaoDetalhada, BigDecimal preco,
                                            int quantidadeEstoque, MultipartFile[] imagens) throws Exception {
@@ -111,6 +170,12 @@ public class ProdutoService {
         }
     }
 
+    /**
+     * Habilita ou desabilita um produto, alterando seu status de ativo.
+     *
+     * @param id O ID do produto a ser habilitado ou desabilitado.
+     * @throws RuntimeException Se o produto não for encontrado.
+     */
     public void habilitarInabilitar(Long id) {
         Produto produto = buscarPorId(id);
         if (produto == null) {
@@ -121,6 +186,20 @@ public class ProdutoService {
         produtoRepository.save(produto);
     }
 
+    /**
+     * Edita os dados de um produto existente.
+     * Permite atualizar o nome, a descrição, o preço, a quantidade em estoque e as imagens do produto.
+     *
+     * @param id O ID do produto a ser editado.
+     * @param nome O novo nome do produto.
+     * @param descricaoDetalhada A nova descrição detalhada do produto.
+     * @param preco O novo preço do produto.
+     * @param quantidadeEstoque A nova quantidade de estoque do produto.
+     * @param imagemPadrao O índice da nova imagem padrão.
+     * @param novasImagens As novas imagens do produto.
+     * @return O produto editado.
+     * @throws Exception Se houver algum erro na atualização dos dados.
+     */
     public Produto editarProduto(Long id, String nome, String descricaoDetalhada, BigDecimal preco,
                                  int quantidadeEstoque, int imagemPadrao, MultipartFile[] novasImagens) throws Exception {
 
@@ -168,6 +247,13 @@ public class ProdutoService {
         return produtoRepository.save(produto);
     }
 
+    /**
+     * Altera a quantidade em estoque de um produto.
+     *
+     * @param id O ID do produto cujo estoque será alterado.
+     * @param novaQuantidade A nova quantidade em estoque.
+     * @throws RuntimeException Se o produto não for encontrado.
+     */
     public void alterarQuantidadeEstoque(Long id, int novaQuantidade) {
         Produto produto = buscarPorId(id);
 
@@ -178,5 +264,4 @@ public class ProdutoService {
         produto.setQuantidadeEstoque(novaQuantidade);
         produtoRepository.save(produto);
     }
-
 }
