@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Controlador responsável pela gestão de produtos no sistema.
@@ -105,10 +107,11 @@ public class ProdutoController {
             @RequestParam("imagens") MultipartFile[] imagens
     ) {
         try {
-            produtoService.cadastrarProduto(nome, descricaoDetalhada, preco, quantidadeEstoque, imagemPadrao, imagens);
-            return ResponseEntity.ok("Produto cadastrado com sucesso!");
+            Produto produtoCriado = produtoService.cadastrarProduto(nome, descricaoDetalhada, preco, quantidadeEstoque, imagemPadrao, imagens);
+            return ResponseEntity.ok(produtoCriado);
+
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Erro ao cadastrar produto: " + e.getMessage());
+            return ResponseEntity.badRequest().build();
         }
     }
 

@@ -44,7 +44,7 @@ public class LoginController {
         }
 
         // Se o usuário for um cliente, não permite login
-        if (usuario.getGrupo() != Grupo.ADMINISTRADOR) {
+        if (usuario.getGrupo() == Grupo.CLIENTE) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Acesso não permitido para clientes.");
         }
 

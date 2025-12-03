@@ -5,18 +5,18 @@ import com.velocompra.ecommerce.dto.ClienteDTO;
 import com.velocompra.ecommerce.dto.ClienteEditarDTO;
 import com.velocompra.ecommerce.dto.EnderecoDTO;
 import com.velocompra.ecommerce.model.Cliente;
-import com.velocompra.ecommerce.model.EnderecoEntrega;
 import com.velocompra.ecommerce.repository.ClienteRepository;
 import com.velocompra.ecommerce.service.ClienteService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Controlador responsável pelas operações relacionadas ao cliente.
@@ -38,10 +38,18 @@ public class ClienteController {
      *
      * @param dto O DTO contendo os dados do cliente a ser cadastrado.
      * @return Uma resposta indicando o sucesso do cadastro.
+     * @RequestBody:
+     * Indica que os dados enviados no corpo da requisição (normalmente em JSON) devem ser desserializados para o objeto ClienteCadastroDTO.
+     * @Valid:
+     * Ativa a validação automática com base nas anotações (como @NotNull, @Email, etc.) definidas dentro do DTO.
+     * Se alguma validação falhar, o Spring retornará automaticamente erro 400 (Bad Request).
      */
-    @PostMapping("/cadastrar")
+    @PostMapping("/cadastrar") // Mapeia requisições HTTP POST para o endpoint /cadastrar
     public ResponseEntity<?> cadastrarCliente(@RequestBody @Valid ClienteCadastroDTO dto) {
+        // Chama o serviço para cadastrar o cliente com base nos dados recebidos no corpo da requisição
         clienteService.cadastrar(dto);
+
+        // Retorna uma resposta HTTP 200 OK com a mensagem de sucesso no corpo
         return ResponseEntity.ok("Cliente cadastrado com sucesso!");
     }
 
@@ -107,12 +115,12 @@ public class ClienteController {
      * @param principal O principal do usuário autenticado, utilizado para recuperar o e-mail.
      * @return Uma resposta indicando o sucesso da atualização dos dados.
      */
-    @PutMapping("/meus-dados")
-    public ResponseEntity<?> atualizarMeusDados(@RequestBody @Valid ClienteEditarDTO dto, Principal principal) {
-        String email = principal.getName();
-        clienteService.atualizarDados(email, dto);
-        return ResponseEntity.ok("Dados atualizados com sucesso!");
-    }
+//    @PutMapping("/meus-dados")
+//    public ResponseEntity<?> atualizarMeusDados(@RequestBody @Valid ClienteEditarDTO dto, Principal principal) {
+//        String email = principal.getName();
+//        clienteService.atualizarDados(email, dto);
+//        return ResponseEntity.ok("Dados atualizados com sucesso!");
+//    }
 
     /**
      * Adiciona um novo endereço de entrega para o cliente autenticado.
@@ -138,6 +146,18 @@ public class ClienteController {
 
         // Retorna uma resposta de sucesso
         return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/meus-dados")
+    public ResponseEntity<Map<String, String>> atualizarMeusDados(@RequestBody @Valid ClienteEditarDTO dto, Principal principal) {
+        String email = principal.getName();
+        clienteService.atualizarDados(email, dto);
+
+        // Retorna JSON em vez de string
+        Map<String, String> response = new HashMap<>();
+        response.put("message", "Dados atualizados com sucesso!");
+
+        return ResponseEntity.ok(response);
     }
 
 }

@@ -24,15 +24,10 @@ import java.util.List;
 public class ProdutoService {
 
     @Autowired
-    private final ProdutoRepository produtoRepository;
+    private ProdutoRepository produtoRepository;
 
     @Value("${produto.upload-dir:uploads/}")
-    private final String uploadDir;
-
-    public ProdutoService(ProdutoRepository produtoRepository, String uploadDir) {
-        this.produtoRepository = produtoRepository;
-        this.uploadDir = uploadDir;
-    }
+    private  String uploadDir;
 
     /**
      * Lista todos os produtos ativos, paginados.

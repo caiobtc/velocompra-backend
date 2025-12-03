@@ -49,16 +49,29 @@ public class PedidoAdminController {
      * @return Uma resposta de sucesso, sem conteúdo.
      * @throws ResponseStatusException Se o pedido não for encontrado, um erro 404 é gerado.
      */
+//    @PatchMapping("/{numeroPedido}/status")
+//    public ResponseEntity<Void> atualizarStatusPedido(@PathVariable String numeroPedido, @RequestBody AtualizarStatusPedidoDTO dto) {
+//        pedidoRepository.findByNumeroPedido(numeroPedido).ifPresentOrElse(pedido -> {
+//            pedido.setStatus(dto.getNovoStatusPedido());
+//            pedidoRepository.save(pedido); // Atualiza o status do pedido no banco de dados
+//        }, () -> {
+//            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Pedido não encontrado"); // Retorna erro 404 se o pedido não for encontrado
+//        });
+//
+//        return ResponseEntity.noContent().build(); // Retorna resposta de sucesso com código 204 (sem conteúdo)
+//    }
+
     @PatchMapping("/{numeroPedido}/status")
-    public ResponseEntity<Void> atualizarStatusPedido(@PathVariable String numeroPedido, @RequestBody AtualizarStatusPedidoDTO dto) {
+    public ResponseEntity<String> atualizarStatusPedido(@PathVariable String numeroPedido, @RequestBody AtualizarStatusPedidoDTO dto) {
         pedidoRepository.findByNumeroPedido(numeroPedido).ifPresentOrElse(pedido -> {
             pedido.setStatus(dto.getNovoStatusPedido());
-            pedidoRepository.save(pedido); // Atualiza o status do pedido no banco de dados
+            pedidoRepository.save(pedido);
         }, () -> {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Pedido não encontrado"); // Retorna erro 404 se o pedido não for encontrado
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Pedido não encontrado");
         });
 
-        return ResponseEntity.noContent().build(); // Retorna resposta de sucesso com código 204 (sem conteúdo)
+        // Retorna 200 com mensagem de sucesso
+        return ResponseEntity.ok("Status atualizado com sucesso");
     }
 
 }

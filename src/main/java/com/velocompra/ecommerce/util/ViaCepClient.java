@@ -22,20 +22,20 @@ public class ViaCepClient {
      * @throws RuntimeException Se o CEP for inválido ou se ocorrer algum erro ao consultar a API ViaCep.
      */
     public EnderecoEntrega buscarCep(String cep) {
-        RestTemplate restTemplate = new RestTemplate();
-        String url = "https://viacep.com.br/ws/" + cep + "/json/";
+        RestTemplate restTemplate = new RestTemplate(); // Cria uma instância de RestTemplate, que é usada para fazer requisições HTTP no Spring
+        String url = "https://viacep.com.br/ws/" + cep + "/json/"; // Define a URL da requisição com base no CEP fornecido
 
         try {
-            // Realiza a requisição HTTP GET para a API ViaCep
+            // Envia uma requisição GET para a API ViaCep e espera um objeto do tipo ViaCepResponse como resposta
             ResponseEntity<ViaCepResponse> response = restTemplate.getForEntity(url, ViaCepResponse.class);
-            ViaCepResponse body = response.getBody();
+            ViaCepResponse body = response.getBody(); // Recupera o corpo da resposta (os dados de endereço)
 
-            // Verifica se a resposta é inválida ou se há erro no retorno
+            // Verifica se o corpo da resposta é nulo ou se a API indicou que houve erro ao buscar o CEP
             if (body == null || body.getErro() != null) {
                 throw new RuntimeException("CEP inválido!");
             }
 
-            // Instancia e popula o objeto EnderecoEntrega usando os dados retornados da API
+            // Cria e popula um novo objeto EnderecoEntrega com os dados retornados da API
             EnderecoEntrega enderecoEntrega = new EnderecoEntrega();
             enderecoEntrega.setCep(body.getCep().replaceAll("\\D", ""));  // Remove caracteres não numéricos
             enderecoEntrega.setLogradouro(body.getLogradouro());
@@ -46,7 +46,7 @@ public class ViaCepClient {
 
             return enderecoEntrega;
         } catch (Exception e) {
-            // Lança uma exceção se ocorrer algum erro durante a requisição ou processamento
+            // Em caso de falha na requisição ou erro inesperado, lança uma exceção com a mensagem de erro
             throw new RuntimeException("Erro ao buscar CEP: " + e.getMessage());
         }
     }

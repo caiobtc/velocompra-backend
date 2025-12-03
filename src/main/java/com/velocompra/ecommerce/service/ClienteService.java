@@ -21,19 +21,30 @@ import java.util.stream.Collectors;
  * Contém métodos para cadastro, atualização de dados, adição de endereços e recuperação de clientes.
  */
 @Service
+@Transactional
 public class ClienteService {
 
-    @Autowired
-    private ClienteRepository clienteRepository;
+    private final ClienteRepository clienteRepository;
+    private final EnderecoFaturamentoRepository enderecoFaturamentoRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final ViaCepClient viaCepUtil;
 
+    /**
+     * Construtor com injeção de dependências.
+     *
+     * @param clienteRepository Repositório de Cliente.
+     * @param enderecoFaturamentoRepository Repositório de Endereço de Faturamento.
+     * @param passwordEncoder Codificador de senhas.
+     * @param viaCepUtil Cliente HTTP para consumir API do ViaCep.
+     */
     @Autowired
-    private EnderecoFaturamentoRepository enderecoFaturamentoRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private ViaCepClient viaCepUtil;
+    public ClienteService(ClienteRepository clienteRepository, EnderecoFaturamentoRepository enderecoFaturamentoRepository,
+                          PasswordEncoder passwordEncoder, ViaCepClient viaCepUtil) {
+        this.clienteRepository = clienteRepository;
+        this.enderecoFaturamentoRepository = enderecoFaturamentoRepository;
+        this.passwordEncoder = passwordEncoder;
+        this.viaCepUtil = viaCepUtil;
+    }
 
     /**
      * Realiza o cadastro de um novo cliente.
@@ -43,51 +54,55 @@ public class ClienteService {
      * @param dto O DTO contendo os dados do cliente a ser cadastrado.
      * @throws ConflictException Se o CPF ou e-mail já estiverem cadastrados no sistema.
      */
-    @Transactional
-    public void cadastrar(ClienteCadastroDTO dto) {
+    public Cliente cadastrar(ClienteCadastroDTO dto) {
+        // Verifica se já existe um cliente cadastrado com o mesmo CPF
         if (clienteRepository.existsByCpf(dto.getCpf())) {
+            // Lança exceção de conflito (HTTP 409) se CPF já estiver em uso
             throw new ConflictException("CPF já cadastrado!");
         }
 
+        // Verifica se já existe um cliente cadastrado com o mesmo e-mail
         if (clienteRepository.existsByEmail(dto.getEmail())) {
+            // Lança exceção de conflito (HTTP 409) se e-mail já estiver em uso
             throw new ConflictException("Email já cadastrado!");
         }
 
+        // Cria um novo objeto Cliente e preenche os dados básicos vindos do DTO
         Cliente cliente = new Cliente();
-        cliente.setNomeCompleto(dto.getNome());
-        cliente.setEmail(dto.getEmail());
-        cliente.setCpf(dto.getCpf());
-        cliente.setDataNascimento(dto.getDataNascimento());
-        cliente.setGenero(dto.getGenero());
-        cliente.setSenha(passwordEncoder.encode(dto.getSenha()));
+        cliente.setNomeCompleto(dto.getNome()); // nome completo
+        cliente.setEmail(dto.getEmail()); // e-mail
+        cliente.setCpf(dto.getCpf()); // cpf
+        cliente.setDataNascimento(dto.getDataNascimento()); // data de nascimento
+        cliente.setGenero(dto.getGenero()); // genero
+        cliente.setSenha(passwordEncoder.encode(dto.getSenha())); // criptogrfa a senha antes de salvar
 
-        // Endereço de Faturamento
-        EnderecoDTO endDTO = dto.getEnderecoFaturamento();
-        EnderecoEntrega viaCep = viaCepUtil.buscarCep(endDTO.getCep());
+        // Salva o cliente no banco de dados.
+        // Se estiver usando @OneToMany ou @OneToOne com CascadeType.ALL, os endereços serão salvos automaticamente depois.
+        final Cliente clienteSalvo = clienteRepository.save(cliente);
 
-        EnderecoFaturamento faturamento = new EnderecoFaturamento();
-        faturamento.setCep(viaCep.getCep());
-        faturamento.setLogradouro(viaCep.getLogradouro());
-        faturamento.setBairro(viaCep.getBairro());
-        faturamento.setCidade(viaCep.getCidade());
-        faturamento.setUf(viaCep.getUf());
-        faturamento.setNumero(endDTO.getNumero());
-        faturamento.setComplemento(endDTO.getComplemento());
+        //Criação do Endereço de Faturamento
+        EnderecoDTO endDTO = dto.getEnderecoFaturamento(); // Obtém o DTO do endereço de faturamento
+        EnderecoEntrega viaCep = viaCepUtil.buscarCep(endDTO.getCep()); // Usa o utilitário ViaCep para buscar os dados do endereço com base no CEP
 
-        enderecoFaturamentoRepository.save(faturamento);
-        cliente.setEnderecoFaturamento(faturamento);
 
-        // Endereços de Entrega
+        EnderecoFaturamento faturamento = criarEnderecoFaturamento(viaCep, endDTO, clienteSalvo);
+        clienteSalvo.setEnderecoFaturamento(faturamento);
+
+        //Criação da Lista de Endereços de Entrega
+        // Mapeia cada endereço de entrega do DTO para um objeto EnderecoEntrega
         List<EnderecoEntrega> enderecosEntrega = dto.getEnderecosEntrega().stream().map(endDTOEntrega -> {
-            EnderecoEntrega enderecoEntrega = viaCepUtil.buscarCep(endDTOEntrega.getCep());
-            enderecoEntrega.setNumero(endDTOEntrega.getNumero());
+            EnderecoEntrega enderecoEntrega = viaCepUtil.buscarCep(endDTOEntrega.getCep()); // Busca dados do CEP usando o ViaCep
+            enderecoEntrega.setNumero(endDTOEntrega.getNumero()); // Preenche dados adicionais do endereço (número e complemento)
             enderecoEntrega.setComplemento(endDTOEntrega.getComplemento());
+            // A associação com o cliente será feita ao chamar setEnderecosEntrega (via cascade)
             return enderecoEntrega;
         }).collect(Collectors.toList());
 
-        cliente.setEnderecosEntrega(enderecosEntrega);
+        // Associa a lista de endereços de entrega ao cliente
+        clienteSalvo.setEnderecosEntrega(enderecosEntrega);
 
-        clienteRepository.save(cliente);
+        // Retorna o cliente com todos os dados cadastrados (inclusive endereços, se cascade estiver correto)
+        return clienteSalvo;
     }
 
     /**
@@ -110,16 +125,7 @@ public class ClienteService {
         EnderecoDTO endDTO = dto.getEnderecoFaturamento();
         if (endDTO != null) {
             EnderecoEntrega viaCep = viaCepUtil.buscarCep(endDTO.getCep());
-
-            EnderecoFaturamento faturamento = new EnderecoFaturamento();
-            faturamento.setCep(viaCep.getCep());
-            faturamento.setLogradouro(viaCep.getLogradouro());
-            faturamento.setBairro(viaCep.getBairro());
-            faturamento.setCidade(viaCep.getCidade());
-            faturamento.setUf(viaCep.getUf());
-            faturamento.setNumero(endDTO.getNumero());
-            faturamento.setComplemento(endDTO.getComplemento());
-
+            EnderecoFaturamento faturamento = criarEnderecoFaturamento(viaCep, endDTO, cliente);
             enderecoFaturamentoRepository.save(faturamento);
             cliente.setEnderecoFaturamento(faturamento);
         }
@@ -156,21 +162,7 @@ public class ClienteService {
             cliente.getEnderecosEntrega().forEach(e -> e.setPadrao(false));
         }
 
-        // Cria um novo endereço de entrega
-        EnderecoEntrega novoEndereco = new EnderecoEntrega();
-        novoEndereco.setCep(dto.getCep());
-        novoEndereco.setLogradouro(dto.getLogradouro());
-        novoEndereco.setNumero(dto.getNumero());
-        novoEndereco.setComplemento(dto.getComplemento());
-        novoEndereco.setBairro(dto.getBairro());
-        novoEndereco.setCidade(dto.getCidade());
-        novoEndereco.setUf(dto.getUf());
-        novoEndereco.setPadrao(dto.isPadrao());
-
-        // Associa o cliente ao novo endereço
-        novoEndereco.setCliente(cliente);
-
-        // Adiciona o novo endereço à lista de endereços de entrega do cliente
+        EnderecoEntrega novoEndereco = criarEnderecoEntrega(dto, cliente);
         cliente.getEnderecosEntrega().add(novoEndereco);
 
         // Salva o cliente (isso salvará automaticamente o novo endereço, devido ao relacionamento)
@@ -185,5 +177,41 @@ public class ClienteService {
      */
     public Cliente getClienteByEmail(String email) {
         return clienteRepository.findByEmail(email).orElse(null);
+    }
+
+    /**
+     * Método auxiliar para construir EnderecoFaturamento com base no ViaCep e no DTO.
+     */
+
+    private static EnderecoFaturamento criarEnderecoFaturamento(EnderecoEntrega viaCep,
+                   EnderecoDTO enderecoDTO, Cliente cliente) {
+        EnderecoFaturamento faturamento = new EnderecoFaturamento();
+        faturamento.setCep(viaCep.getCep());
+        faturamento.setLogradouro(viaCep.getLogradouro());
+        faturamento.setBairro(viaCep.getBairro());
+        faturamento.setCidade(viaCep.getCidade());
+        faturamento.setUf(viaCep.getUf());
+        faturamento.setNumero(enderecoDTO.getNumero());
+        faturamento.setComplemento(enderecoDTO.getComplemento());
+        faturamento.setCliente(cliente);
+        return faturamento;
+
+    }
+
+    /**
+     * Método auxiliar para construir um novo EnderecoEntrega a partir do DTO.
+     */
+    private static EnderecoEntrega criarEnderecoEntrega(EnderecoDTO dto, Cliente cliente) {
+        EnderecoEntrega novoEndereco = new EnderecoEntrega();
+        novoEndereco.setCep(dto.getCep());
+        novoEndereco.setLogradouro(dto.getLogradouro());
+        novoEndereco.setNumero(dto.getNumero());
+        novoEndereco.setComplemento(dto.getComplemento());
+        novoEndereco.setBairro(dto.getBairro());
+        novoEndereco.setCidade(dto.getCidade());
+        novoEndereco.setUf(dto.getUf());
+        novoEndereco.setPadrao(dto.isPadrao());
+        novoEndereco.setCliente(cliente);
+        return novoEndereco;
     }
 }

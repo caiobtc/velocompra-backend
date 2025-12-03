@@ -28,8 +28,9 @@ public class ViaCepController {
     @GetMapping("/{cep}")
     public ResponseEntity<?> buscar(@PathVariable String cep) {
         try {
+            // AQUI: Chama o serviço ViaCepClient para buscar os dados
             EnderecoEntrega enderecoEntrega = viaCepClient.buscarCep(cep);
-            return ResponseEntity.ok(enderecoEntrega); // Retorna o endereço encontrado
+            return ResponseEntity.ok(enderecoEntrega); // Retorna o objeto EnderecoEntrega como JSON
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage()); // Retorna erro se a consulta falhar
         }
